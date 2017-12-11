@@ -1,12 +1,22 @@
 sudo: false
-
 language: go
-
 go:
 - 1.9.x
 - 1.x
-
 go_import_path: github.com/prometheus/blackbox_exporter
-
 script:
-- make
+- make vet build
+before_deploy:
+- go get github.com/mitchellh/gox
+- gox -os linux -output "{{.Dir}}-${TRAVIS_TAG}.{{.OS}}_{{.Arch}}"
+- for i in blackbox_exporter-${TRAVIS_TAG}*; do echo $i; tar cvf $i.tar.gz $i LICENSE
+  NOTICE VERSION blackbox.yml; done
+deploy:
+  provider: releases
+  file_glob: true
+  file: "*.tar.gz"
+  skip_cleanup: true
+  on:
+    tags: true
+  api_key:
+    secure: SmNUNINZme5zIrED+mi6CqgU5f7Qjjnqr8CuJn619yCdhNp606VfUp5hbqm/On6I3U+GcxQU8bm/tYUxK/rBahRug10VNHMdUcM5jAdAGEBpEW4yQyHaNJ7jmmc/xE/n6LJZ02zfAJpnjy2iV3ri6gpLiP9pdSJqXx90X0qrZAetEt/vCCZZzyXO21OGHUjD2wuzThu6qcstY/tHytXS+v3PLLKEiv04LjC0Qm6SsDoP4Orbc+MXmOxMIyzOj9ZcwpVINGP2ut1vuc/B7KTLDZX4OJ5rFClv5ddv1vryXDrN0oC6EtRNSmrfIpsvB8wX8aPxkljixeY828Er1XybK4yt3Z+O/+UBO1/H6sPj8OMVweBujGgJ7vCxEK9iVLf6TKevxS1bhxgYOzImS6G/1vNr0E/ZULWf2/TBd4AwThW7wIZV7fyXBVE/RJR5JQ8A6Gd9XsUs2kuv5GTmjrKhS1U4lNvl7Sz86ayDxxE7rbmYHHKUiYNHZtz/tEcQPyw6sNSi6KN9CdUqTdnydkE3NH8E4i664odhp3MHEkLpr1MDwka+qCk9ZGs8W1IGYhU3/NCHcPGXOQr7UXmlxl2wUzp+HALzth1IpZ9VCEGYFsV6RkewKIzYgtJfr0yVTRH5WbMCD7grC8a7EIF9oG4aYvtsJULF8D3v2/WfbN+S7RE=
