@@ -52,6 +52,7 @@ type Module struct {
 	TCP     TCPProbe      `yaml:"tcp,omitempty"`
 	ICMP    ICMPProbe     `yaml:"icmp,omitempty"`
 	DNS     DNSProbe      `yaml:"dns,omitempty"`
+	LDAP    LDAPProbe     `yaml:"ldap,omitempty"`
 
 	// Catches all undefined fields and must be empty after parsing.
 	XXX map[string]interface{} `yaml:",inline"`
@@ -120,6 +121,22 @@ type DNSProbe struct {
 type DNSRRValidator struct {
 	FailIfMatchesRegexp    []string `yaml:"fail_if_matches_regexp,omitempty"`
 	FailIfNotMatchesRegexp []string `yaml:"fail_if_not_matches_regexp,omitempty"`
+
+	// Catches all undefined fields and must be empty after parsing.
+	XXX map[string]interface{} `yaml:",inline"`
+}
+
+type LDAPBind struct {
+	Username string
+	Password string
+
+	// Catches all undefined fields and must be empty after parsing.
+	XXX map[string]interface{} `yaml:",inline"`
+}
+
+type LDAPProbe struct {
+	Bind LDAPBind `yaml:"bind_simple,omitempty"`
+	// Requests []LDAPRequest `yaml:",omitempty`
 
 	// Catches all undefined fields and must be empty after parsing.
 	XXX map[string]interface{} `yaml:",inline"`
@@ -235,6 +252,30 @@ func (s *QueryResponse) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 	if err := checkOverflow(s.XXX, "query response"); err != nil {
+		return err
+	}
+	return nil
+}
+
+// UnmarshalYAML implements the yaml.Unmarshaler interface.
+func (s *LDAPProbe) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type plain LDAPProbe
+	if err := unmarshal((*plain)(s)); err != nil {
+		return err
+	}
+	if err := checkOverflow(s.XXX, "ldap probe"); err != nil {
+		return err
+	}
+	return nil
+}
+
+// UnmarshalYAML implements the yaml.Unmarshaler interface.
+func (s *LDAPBind) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type plain LDAPBind
+	if err := unmarshal((*plain)(s)); err != nil {
+		return err
+	}
+	if err := checkOverflow(s.XXX, "ldap bind"); err != nil {
 		return err
 	}
 	return nil

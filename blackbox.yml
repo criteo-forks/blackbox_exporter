@@ -2,6 +2,13 @@ modules:
   http_2xx:
     prober: http
     http:
+
+  ldap_bind:
+    prober: ldap
+    ldap:
+      # bind_simple: 
+      #     username: uid=foo,ou=dudes,dc=example,dc=com
+      #     password: foobarsecretsaucypassword
   http_post_2xx:
     prober: http
     http:
