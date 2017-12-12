@@ -1,5 +1,7 @@
 sudo: false
 language: go
+env:
+- PROJECT="nrpe_exporter"
 go:
 - 1.9.x
 - 1.x
@@ -8,9 +10,8 @@ script:
 - make vet build
 before_deploy:
 - go get github.com/mitchellh/gox
-- gox -os linux -output "{{.Dir}}-${TRAVIS_TAG}.{{.OS}}_{{.Arch}}"
-- for i in blackbox_exporter-${TRAVIS_TAG}*; do echo $i; tar cvf $i.tar.gz $i LICENSE
-  NOTICE VERSION blackbox.yml; done
+- gox -os linux -output "./bin/{{.OS}}_{{.Arch}}/${PROJECT}"
+- for i in ./bin/*; do cp "$i/${PROJECT}" . && tar -cvf "${PROJECT}-${TRAVIS_TAG//v/}.${i##*/}.tar.gz" $PROJECT LICENSE NOTICE VERSION blackbox.yml; done; rm "${PROJECT}"; done
 deploy:
   provider: releases
   file_glob: true
@@ -19,4 +20,4 @@ deploy:
   on:
     tags: true
   api_key:
-    secure: SmNUNINZme5zIrED+mi6CqgU5f7Qjjnqr8CuJn619yCdhNp606VfUp5hbqm/On6I3U+GcxQU8bm/tYUxK/rBahRug10VNHMdUcM5jAdAGEBpEW4yQyHaNJ7jmmc/xE/n6LJZ02zfAJpnjy2iV3ri6gpLiP9pdSJqXx90X0qrZAetEt/vCCZZzyXO21OGHUjD2wuzThu6qcstY/tHytXS+v3PLLKEiv04LjC0Qm6SsDoP4Orbc+MXmOxMIyzOj9ZcwpVINGP2ut1vuc/B7KTLDZX4OJ5rFClv5ddv1vryXDrN0oC6EtRNSmrfIpsvB8wX8aPxkljixeY828Er1XybK4yt3Z+O/+UBO1/H6sPj8OMVweBujGgJ7vCxEK9iVLf6TKevxS1bhxgYOzImS6G/1vNr0E/ZULWf2/TBd4AwThW7wIZV7fyXBVE/RJR5JQ8A6Gd9XsUs2kuv5GTmjrKhS1U4lNvl7Sz86ayDxxE7rbmYHHKUiYNHZtz/tEcQPyw6sNSi6KN9CdUqTdnydkE3NH8E4i664odhp3MHEkLpr1MDwka+qCk9ZGs8W1IGYhU3/NCHcPGXOQr7UXmlxl2wUzp+HALzth1IpZ9VCEGYFsV6RkewKIzYgtJfr0yVTRH5WbMCD7grC8a7EIF9oG4aYvtsJULF8D3v2/WfbN+S7RE=
+    secure: akYI0/vhoHg6U7aSCujK2rLQvnrN0jsozXEIiCnhUMBLfJKWPVVRCg39XrtfRbgPHK59PkJduzCzn3Rl8QozhZdoXaa6MsSKKt3lsVwiqEH768u6F76b1TEkqHO4ZVW7NXdhfOVyLNMkYnIUAhlmyowM/15Rb6M/kT2lpQ52lgTtSelAY+hSVLYbYPmemzPBWnVM9dCZ5QX+K7a6HQjvK/I0sf5/QnSDzKGppkSN/TXTCsaoj5AZF7ikWI4bglKrz45ioCK8XIDey6h4l4XneZAX2NnqJtG6tkCbaVAAJ8XjQsHlp5k7TmRu8p+IUaWCRDsOfNZeIsJ80JePCGDWNq+Qtx8SrNRPD7mr4w9D0MM66vyuraAKkpPgu3aVUDB/EJyeWrvY/kLpOyzAwzZtaY7k6M1k7VjRHLjnb7r37zWDbJ+hWPvHA1ocJwF8UP7OV9k3CAiOzN5M/Q/iadkRjQpmldpks0KRbeCOjvP8JIZ13JmWYZB3jE8JWJGXbtHOlWQ1ujhblTJB70g4w461+vvGmRTfeRz9n5cXo0kxjYaiS31NZs45ybwlsE6ENkhuu/rkEbKgv+J2wh5AVcxgvXQRI8Kc9i6U1IpiSOmNnHepYj4DTaSbBBqIJfVkF+vAnECTkENAVlKP9w0xup/3IOiW/CwVIoaKpd1de+yij2I=
