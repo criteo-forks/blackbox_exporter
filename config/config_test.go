@@ -22,22 +22,39 @@ func TestLoadBadConfigs(t *testing.T) {
 	sc := &SafeConfig{
 		C: &Config{},
 	}
+	baseErrorMsg := "Error parsing config file: "
 	tests := []struct {
 		ConfigFile    string
 		ExpectedError string
 	}{
 		{
 			ConfigFile:    "testdata/blackbox-bad.yml",
-			ExpectedError: "Error parsing config file: unknown fields in dns probe: invalid_extra_field",
+			ExpectedError: "unknown fields in dns probe: invalid_extra_field",
 		},
 		{
 			ConfigFile:    "testdata/invalid-dns-module.yml",
-			ExpectedError: "Error parsing config file: Query name must be set for DNS module",
+			ExpectedError: "Query name must be set for DNS module",
+		},
+		{
+			ConfigFile:    "testdata/ldap/no_dn.yml",
+			ExpectedError: "DN is required to query LDAP",
+		},
+		{
+			ConfigFile:    "testdata/ldap/bad_dn.yml",
+			ExpectedError: "Invalid DN detected uid,dc=bar",
+		},
+		{
+			ConfigFile:    "testdata/ldap/bad_scope.yml",
+			ExpectedError: "Unknown scope type: foo",
+		},
+		{
+			ConfigFile:    "testdata/ldap/bad_filter.yml",
+			ExpectedError: "Invalid filter detected: not=working)",
 		},
 	}
 	for i, test := range tests {
 		err := sc.ReloadConfig(test.ConfigFile)
-		if err.Error() != test.ExpectedError {
+		if err.Error() != baseErrorMsg+test.ExpectedError {
 			t.Errorf("In case %v:\nExpected:\n%v\nGot:\n%v", i, test.ExpectedError, err.Error())
 		}
 	}

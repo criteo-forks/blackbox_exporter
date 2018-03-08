@@ -49,6 +49,12 @@ func ProbeLDAP(ctx context.Context, target string, module config.Module, registy
 		Name:      "duration",
 		Help:      "The duration it took for different phase of probing",
 	}, []string{"phase"})
+	probeLDAPQueryResultCount := prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: "probe",
+		Subsystem: "ldap",
+		Name:      "result_count",
+		Help:      "The number of entries returned by LDAP server",
+	})
 
 	connectPhase, err := probeDuration.GetMetricWithLabelValues("connect")
 	if err != nil {
@@ -57,6 +63,7 @@ func ProbeLDAP(ctx context.Context, target string, module config.Module, registy
 
 	registy.MustRegister(probeLDAPStatusCode)
 	registy.MustRegister(probeDuration)
+	registy.MustRegister(probeLDAPQueryResultCount)
 
 	deadline, _ := ctx.Deadline()
 	connectStart := time.Now()
@@ -73,6 +80,7 @@ func ProbeLDAP(ctx context.Context, target string, module config.Module, registy
 	bindPhase, err := probeDuration.GetMetricWithLabelValues("bind")
 	if err != nil {
 		level.Error(logger).Log("msg", "Error adding bind label to duration metric", "err", err)
+		return false
 	}
 	bindStart := time.Now()
 	_, err = conn.SimpleBind(ldap.NewSimpleBindRequest(module.LDAP.Bind.Username, module.LDAP.Bind.Password, nil))
@@ -87,5 +95,36 @@ func ProbeLDAP(ctx context.Context, target string, module config.Module, registy
 		return false
 	}
 	probeLDAPStatusCode.Set(0)
+
+	if module.LDAP.Query.DN == "" {
+		return true
+	}
+
+	searchRequest := ldap.NewSearchRequest(
+		module.LDAP.Query.DN, // The base dn to search
+		config.LDAPScopes[module.LDAP.Query.Scope], ldap.NeverDerefAliases, -1, 0, false,
+		module.LDAP.Query.Filter,
+		module.LDAP.Query.Attributes,
+		nil,
+	)
+
+	queryPhase, err := probeDuration.GetMetricWithLabelValues("search")
+	if err != nil {
+		level.Error(logger).Log("msg", "Error adding search label to duration metric", "err", err)
+		return false
+	}
+	queryStart := time.Now()
+	sr, err := conn.SearchWithPaging(searchRequest, 100)
+	if err != nil {
+		ldapError, ok := err.(*ldap.Error)
+		if ok {
+			probeLDAPStatusCode.Set(float64(ldapError.ResultCode))
+		}
+		//Not ldap.Error style error, mostly due to transport
+		level.Error(logger).Log("msg", "Error during search", "err", err)
+		return false
+	}
+	queryPhase.Set(time.Since(queryStart).Seconds())
+	probeLDAPQueryResultCount.Set(float64(len(sr.Entries)))
 	return true
 }

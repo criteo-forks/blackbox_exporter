@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	ldap "gopkg.in/ldap.v2"
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/prometheus/common/config"
@@ -134,8 +135,19 @@ type LDAPBind struct {
 	XXX map[string]interface{} `yaml:",inline"`
 }
 
+type LDAPQuery struct {
+	DN         string
+	Filter     string // Defaults is "(objectClass=*)".
+	Scope      string
+	Attributes []string
+
+	// Catches all undefined fields and must be empty after parsing.
+	XXX map[string]interface{} `yaml:",inline"`
+}
+
 type LDAPProbe struct {
-	Bind LDAPBind `yaml:"bind_simple,omitempty"`
+	Bind  LDAPBind  `yaml:"bind_simple,omitempty"`
+	Query LDAPQuery `yaml:"query,omitempty"`
 	// Requests []LDAPRequest `yaml:",omitempty`
 
 	// Catches all undefined fields and must be empty after parsing.
@@ -266,6 +278,7 @@ func (s *LDAPProbe) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err := checkOverflow(s.XXX, "ldap probe"); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -277,6 +290,46 @@ func (s *LDAPBind) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	if err := checkOverflow(s.XXX, "ldap bind"); err != nil {
 		return err
+	}
+	if _, err := ldap.ParseDN(s.Username); err != nil {
+		return fmt.Errorf("Invalid DN detected: %s", s.Username)
+	}
+	return nil
+}
+
+// LDAPScopes  defines mapping between  strings and ldap scopes
+var LDAPScopes = map[string]int{"base": ldap.ScopeBaseObject, "one": ldap.ScopeSingleLevel, "sub": ldap.ScopeWholeSubtree}
+
+// UnmarshalYAML implements the yaml.Unmarshaler interface.
+func (s *LDAPQuery) UnmarshalYAML(unmarshal func(interface{}) error) error {
+
+	type plain LDAPQuery
+	if err := unmarshal((*plain)(s)); err != nil {
+		return err
+	}
+
+	if err := checkOverflow(s.XXX, "ldap query"); err != nil {
+		return err
+	}
+
+	if _, err := ldap.CompileFilter(s.Filter); err != nil && s.Filter != "" {
+		return fmt.Errorf("Invalid filter detected: %s", s.Filter)
+	}
+
+	if s.DN == "" {
+		return fmt.Errorf("DN is required to query LDAP")
+	}
+
+	if _, err := ldap.ParseDN(s.DN); err != nil {
+		return fmt.Errorf("Invalid DN detected: %s", s.DN)
+	}
+
+	if _, ok := LDAPScopes[s.Scope]; !ok {
+		if s.Scope == "" {
+			s.Scope = "one"
+		} else {
+			return fmt.Errorf("Unknown scope type: %s", s.Scope)
+		}
 	}
 	return nil
 }

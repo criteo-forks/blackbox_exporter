@@ -65,3 +65,24 @@ modules:
       preferred_ip_protocol: ip4
       validate_answer_rrs:
         fail_if_matches_regexp: [test]
+  ldap_anon:
+    prober: ldap
+    ldap:
+  ldap_bind_only:
+    prober: ldap
+    ldap:
+      bind_simple:
+        username: "uid=foo,dc=bar"
+        password: "something"
+  ldap_bind_query:
+    prober: ldap
+    ldap:
+      bind_simple:
+        username: "uid=foo,dc=bar"
+        password: "something"
+    query:
+      dn: "ou=something,dc=somewhere"
+      filter: "(objectClass=*)"
+      scope: "sub"
+      attributes:
+       - "uid"

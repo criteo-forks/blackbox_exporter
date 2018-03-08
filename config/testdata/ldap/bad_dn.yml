@@ -1,0 +1,6 @@
+modules:
+  ldap_bind_no_DN:
+    prober: ldap
+    ldap:
+      bind_simple:
+        username: "uid,dc=bar"
