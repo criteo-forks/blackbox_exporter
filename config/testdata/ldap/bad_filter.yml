@@ -1,0 +1,7 @@
+modules:
+  ldap_bind_query_invalid_filter:
+    prober: ldap
+    ldap:
+      query:
+        dn: "ou=something,dc=somewhere"
+        filter: "not=working)"
