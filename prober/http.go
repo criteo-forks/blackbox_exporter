@@ -46,7 +46,7 @@ func matchRegularExpressions(reader io.Reader, httpConfig config.HTTPProbe, logg
 		level.Error(logger).Log("msg", "Error reading HTTP body", "err", err)
 		return false
 	}
-	for _, expression := range httpConfig.FailIfBodyMatchesRegexp {
+	for _, expression := range append(httpConfig.FailIfBodyMatchesRegexp, httpConfig.FailIfBodyMatchesRegexpFallback...) {
 		re, err := regexp.Compile(expression)
 		if err != nil {
 			level.Error(logger).Log("msg", "Could not compile regular expression", "regexp", expression, "err", err)
@@ -57,7 +57,7 @@ func matchRegularExpressions(reader io.Reader, httpConfig config.HTTPProbe, logg
 			return false
 		}
 	}
-	for _, expression := range httpConfig.FailIfBodyNotMatchesRegexp {
+	for _, expression := range append(httpConfig.FailIfBodyNotMatchesRegexp, httpConfig.FailIfBodyNotMatchesRegexpFallback...) {
 		re, err := regexp.Compile(expression)
 		if err != nil {
 			level.Error(logger).Log("msg", "Could not compile regular expression", "regexp", expression, "err", err)
@@ -447,7 +447,7 @@ func ProbeHTTP(ctx context.Context, target string, module config.Module, registr
 			}
 		}
 
-		if success && (len(httpConfig.FailIfBodyMatchesRegexp) > 0 || len(httpConfig.FailIfBodyNotMatchesRegexp) > 0) {
+		if success && (len(append(httpConfig.FailIfBodyMatchesRegexp, httpConfig.FailIfBodyMatchesRegexpFallback...)) > 0 || len(append(httpConfig.FailIfBodyNotMatchesRegexp, httpConfig.FailIfBodyNotMatchesRegexpFallback...)) > 0) {
 			success = matchRegularExpressions(resp.Body, httpConfig, logger)
 			if success {
 				probeFailedDueToRegex.Set(0)

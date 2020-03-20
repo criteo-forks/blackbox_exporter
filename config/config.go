@@ -124,21 +124,23 @@ type Module struct {
 
 type HTTPProbe struct {
 	// Defaults to 2xx.
-	ValidStatusCodes             []int                   `yaml:"valid_status_codes,omitempty"`
-	ValidHTTPVersions            []string                `yaml:"valid_http_versions,omitempty"`
-	IPProtocol                   string                  `yaml:"preferred_ip_protocol,omitempty"`
-	IPProtocolFallback           bool                    `yaml:"ip_protocol_fallback,omitempty"`
-	NoFollowRedirects            bool                    `yaml:"no_follow_redirects,omitempty"`
-	FailIfSSL                    bool                    `yaml:"fail_if_ssl,omitempty"`
-	FailIfNotSSL                 bool                    `yaml:"fail_if_not_ssl,omitempty"`
-	Method                       string                  `yaml:"method,omitempty"`
-	Headers                      map[string]string       `yaml:"headers,omitempty"`
-	FailIfBodyMatchesRegexp      []string                `yaml:"fail_if_body_matches_regexp,omitempty"`
-	FailIfBodyNotMatchesRegexp   []string                `yaml:"fail_if_body_not_matches_regexp,omitempty"`
-	FailIfHeaderMatchesRegexp    []HeaderMatch           `yaml:"fail_if_header_matches,omitempty"`
-	FailIfHeaderNotMatchesRegexp []HeaderMatch           `yaml:"fail_if_header_not_matches,omitempty"`
-	Body                         string                  `yaml:"body,omitempty"`
-	HTTPClientConfig             config.HTTPClientConfig `yaml:"http_client_config,inline"`
+	ValidStatusCodes                   []int                   `yaml:"valid_status_codes,omitempty"`
+	ValidHTTPVersions                  []string                `yaml:"valid_http_versions,omitempty"`
+	IPProtocol                         string                  `yaml:"preferred_ip_protocol,omitempty"`
+	IPProtocolFallback                 bool                    `yaml:"ip_protocol_fallback,omitempty"`
+	NoFollowRedirects                  bool                    `yaml:"no_follow_redirects,omitempty"`
+	FailIfSSL                          bool                    `yaml:"fail_if_ssl,omitempty"`
+	FailIfNotSSL                       bool                    `yaml:"fail_if_not_ssl,omitempty"`
+	Method                             string                  `yaml:"method,omitempty"`
+	Headers                            map[string]string       `yaml:"headers,omitempty"`
+	FailIfBodyMatchesRegexp            []string                `yaml:"fail_if_body_matches_regexp,omitempty"`
+	FailIfBodyNotMatchesRegexp         []string                `yaml:"fail_if_body_not_matches_regexp,omitempty"`
+	FailIfBodyMatchesRegexpFallback    []string                `yaml:"fail_if_matches_regexp,omitempty"`
+	FailIfBodyNotMatchesRegexpFallback []string                `yaml:"fail_if_not_matches_regexp,omitempty"`
+	FailIfHeaderMatchesRegexp          []HeaderMatch           `yaml:"fail_if_header_matches,omitempty"`
+	FailIfHeaderNotMatchesRegexp       []HeaderMatch           `yaml:"fail_if_header_not_matches,omitempty"`
+	Body                               string                  `yaml:"body,omitempty"`
+	HTTPClientConfig                   config.HTTPClientConfig `yaml:"http_client_config,inline"`
 }
 
 type HeaderMatch struct {
